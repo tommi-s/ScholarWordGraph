@@ -1,0 +1,435 @@
+---
+title: "Scholar WordGraph"
+author: Tommi Suvitaival, Steno Diabetes Center Copenhagen, tommi.raimo.leo.suvitaival@regionh.dk
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    keep_md: true
+    fig_width: 8
+    fig_height: 8
+    dev: jpeg
+    toc: yes
+always_allow_html: true
+---
+
+# Load Data
+
+```{r}
+
+data.loaded <- 
+  readr::read_delim(
+    file = "data/publications.txt",
+    delim = "\t",
+    escape_double = FALSE,
+    col_names = FALSE,
+    trim_ws = TRUE
+  )
+
+```
+# Format Data into Data Frame
+
+```{r}
+
+data <- unlist( data.loaded )
+
+data <- data[ 1:( length( data ) - 4 ) ]
+
+data <-
+  matrix(
+    data = unlist( data ),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+colnames( data ) <-
+  c(
+    "Title",
+    "Authors",
+    "Journal"
+  )
+
+data <-
+  data.frame(
+    data,
+    stringsAsFactors = FALSE
+  )
+
+```
+
+# Convert Titles to Lower Case
+
+```{r}
+
+data$"Title.lower" <-
+  tolower( data$"Title" )
+
+# Neutralize plurals and verbs.
+
+# data$"Title.lower" <-
+#   stringr::str_replace_all(
+#     string = data$"Title.lower",
+#     pattern = "(s\\s)",
+#     replacement = " "
+#   )
+# 
+# data$"Title.lower" <-
+#   stringr::str_replace_all(
+#     string = data$"Title.lower",
+#     pattern = "(s\\:)",
+#     replacement = ""
+#   )
+# 
+# data$"Title.lower" <-
+#   stringr::str_replace_all(
+#     string = data$"Title.lower",
+#     pattern = "(s$)",
+#     replacement = ""
+#   )
+
+data$"Title.lower" <-
+  stringr::str_replace_all(
+    string = data$"Title.lower",
+    # pattern = "type 1 diabete",
+    pattern = "type 1 diabetes",
+    replacement = "type_1_diabetes"
+  )
+
+data$"Title.lower" <-
+  stringr::str_replace_all(
+    string = data$"Title.lower",
+    # pattern = "type 2 diabete",
+    pattern = "type 2 diabetes",
+    replacement = "type_2_diabetes"
+  )
+
+```
+
+# Omit Punctuation from Titles
+
+```{r}
+
+words <-
+  stringr::str_split(
+    string = data[ , "Title.lower" ],
+    pattern = "\\s"
+  )
+
+words <- 
+  lapply(
+    X = words,
+    FUN = tolower
+  )
+
+words <-
+  lapply(
+    X = words,
+    FUN = stringr::str_replace_all,
+    pattern = "(\\()|(\\))|(\\:)|(\\,)|(\\.)",
+    replacement = ""
+  )
+
+table.words <- 
+  sort(
+    x = table( unlist( words ) ),
+    decreasing = TRUE
+  )
+
+```
+# Extract Unique Words
+
+```{r}
+
+words.unique <-
+  sort(
+    unique(
+      unlist( words ) )
+  )
+```
+
+# Define List of Blocked Words
+
+```{r}
+
+blocklist <-
+  c(
+    "in",
+    "of",
+    "and",
+    "the",
+    "with",
+    "for",
+    "from",
+    "to",
+    "...",
+    "an",
+    "at",
+    "on",
+    letters,
+    "after",
+    "are",
+    "as",
+    "based",
+    "by",
+    "do",
+    "is",
+    "not",
+    "without",
+    "through",
+    "during"
+  )
+
+# words.unique <- words.unique[ !( words.unique %in% blocklist ) ]
+
+blocklist <- 
+  c(
+    blocklist,
+    words.unique[ grepl( x = words.unique, pattern = "^[0-9]+$" ) ]
+  )
+
+```
+
+```{r}
+
+words <-
+  lapply(
+    X = words,
+    FUN = function( x ) {
+      x[ !( x %in% blocklist ) ]
+    }
+  )
+
+```
+
+# Re-Extract Unique Words
+
+```{r}
+
+words.unique <-
+  sort(
+    unique(
+      unlist( words ) )
+  )
+
+```
+
+# Create the Words-by-Articles Matrix
+
+```{r}
+
+wba <-
+  array(
+    data = 0,
+    dim = c( length( words.unique ), nrow( data ) )
+  )
+
+rownames( wba ) <- words.unique
+colnames( wba ) <- data[ , "Title" ]
+
+for ( i in 1:nrow( data ) ) {
+  
+  wba[ words[[ i ]], i ] <- 1
+  
+}
+
+```
+
+## Log-Transform Occurrences
+
+```{r}
+
+wba.log1px <- log10( 1 + wba )
+
+```
+
+## Compute PCA
+
+```{r}
+
+wba.norm <- scale( wba.log1px )
+# wba.norm <- scale( wba )
+
+result.pca <-
+  princomp(
+    x = wba.norm
+  )
+
+```
+
+# Plot PCA
+
+```{r}
+
+library( "ggfortify" )
+
+plot <-
+  autoplot( 
+    result.pca
+    ,
+    # loadings = TRUE,
+    # loadings.label = TRUE
+  )
+
+print( plot )
+
+```
+
+# Cluster Words
+
+```{r}
+
+result.clustering <-
+  cluster::pam(
+    x = wba.norm,
+    k = 8
+  )
+
+```
+
+# Prepare Data for Plot
+
+```{r}
+
+jitter <- 1
+
+data.plot <-
+  data.frame(
+    Word = rownames( result.pca$"scores" ),
+    result.pca$"scores"
+  )
+
+# data.plot$"Comp.1.jittered" <- 
+#   data.plot$"Comp.1" + 
+#   rnorm(
+#     n = nrow( data.plot ),
+#     sd = jitter
+#   )
+# 
+# data.plot$"Comp.2.jittered" <- 
+#   data.plot$"Comp.2" + 
+#   rnorm(
+#     n = nrow( data.plot ),
+#     sd = jitter
+#   )
+
+data.plot$"Distance" <- 
+  sqrt( data.plot$"Comp.1"^2 + data.plot$"Comp.2"^2 ) + 1
+
+data.plot$"Term" <-
+  stringr::str_replace_all(
+    string = data.plot$"Word",
+    pattern = "\\-",
+    replacement = "-\n"
+  )
+
+data.plot$"Term" <-
+  stringr::str_replace_all(
+    string = data.plot$"Word",
+    pattern = "\\_",
+    replacement = "\n"
+  )
+
+data.plot$"Cluster" <- 
+  as.factor( result.clustering$"clustering" )
+  # as.factor(
+  #   paste(
+  #     "C",
+  #     result.clustering$"clustering"
+  #   )
+  # )
+
+data.plot$"Publications" <-
+  # tmp <-
+  apply(
+    X = wba[ data.plot$"Word", ] == 1,
+    MAR = 1,
+    FUN = function( x ) {
+      paste(
+        "\n",
+        names(
+          which( x )
+        ),
+        collapse = "\n"
+      )
+      # names( which( x ) )
+    }
+  )
+
+```
+
+# Define the Figure
+
+```{r}
+
+palette <- RColorBrewer::brewer.pal( n = 9, "Set1" )[ -6 ]
+
+plot <-
+  ggplot2::ggplot(
+    data = data.plot,
+    mapping =
+      ggplot2::aes(
+        x = Comp.2,
+        y = Comp.1,
+        label = Term,
+        size = Distance,
+        text = Publications
+        ,
+        color = Cluster,
+      )
+  ) +
+  # ggplot2::geom_point() +
+  ggplot2::geom_text(
+    position =
+      ggplot2::position_jitter(
+        height = jitter,
+        width = jitter
+      )
+    # ,
+    # show_guide = FALSE
+  ) +
+  ggplot2::scale_x_continuous( trans = "pseudo_log" ) +
+  ggplot2::scale_y_continuous( trans = "pseudo_log" ) +
+  ggplot2::theme(
+    axis.text = ggplot2::element_blank(),
+    axis.ticks = ggplot2::element_blank()
+    # ,
+    # legend.position = "none"
+  ) +
+  ggplot2::xlab( label = "" ) +
+  ggplot2::ylab( label = "" ) +
+  ggplot2::scale_color_manual( values = palette )
+#+
+  # ggplot2::scale_color_brewer( palette = "Set1" )
+# +
+  # ggplot2::theme_classic()
+
+```
+
+# Create the Interactive Figure
+
+```{r}
+
+library( tidyr )
+
+plotly::ggplotly( 
+  p = plot,
+  tooltip = c( "label", "Publications" )
+) %>%
+  plotly::layout(
+    legend = 
+      list(
+      orientation = "h",
+      title = list( text = "Cluster" ),
+      x = quantile( x = data.plot$"Comp.2", probs = 0.67 ),
+      y = min( data.plot$"Comp.1" )
+    )
+  )
+
+```
+
+# SessionInfo
+
+```{r}
+
+utils::sessionInfo()
+
+```

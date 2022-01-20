@@ -1,0 +1,96 @@
+Lipidome as a predictive tool in progression to type 2 diabetes in Finnish men
+T Suvitaival, I Bondia-Pons, L Yetukuri, P Pöhö, JJ Nolan, T Hyötyläinen, ...
+Metabolism 78, 1-12	74	2018
+Multivariate multi-way analysis of multi-source data
+I Huopaniemi, T Suvitaival, J Nikkilä, M Orešič, S Kaski
+Bioinformatics 26 (12), i391-i398	52	2010
+Identification of a plasma signature of psychotic disorder in children and adolescents from the Avon Longitudinal Study of Parents and Children (ALSPAC) cohort
+A O'Gorman, T Suvitaival, L Ahonen, M Cannon, S Zammit, G Lewis, ...
+Translational Psychiatry 7, e1240	38	2017
+Primary fatty amides in plasma associated with brain amyloid burden, hippocampal volume, and memory in the European Medical Information Framework for Alzheimer's Disease …
+M Kim, S Snowden, T Suvitaival, A Ali, DJ Merkler, T Ahmad, S Westwood, ...
+Alzheimer's & dementia 15 (6), 817-827	34	2019
+Two-way analysis of high-dimensional collinear data
+I Huopaniemi, T Suvitaival, J Nikkilä, M Orešič, S Kaski
+Data Mining and Knowledge Discovery 19 (2), 261-276	33	2009
+Serum metabolite profile associates with the development of metabolic co-morbidities in first-episode psychosis
+T Suvitaival, O Mantere, T Kieseppä, I Mattila, P Pöhö, T Hyötyläinen, ...
+Translational Psychiatry 6 (11), e951	32	2016
+Molecular Atlas of Postnatal Mouse Heart Development
+V Talman, J Teppo, P Pöhö, P Movahedi, A Vaikkinen, ST Karhu, K Trošt, ...
+Journal of the American Heart Association 7 (20), e010378	29	2018
+Lipidomic analysis reveals sphingomyelin and phosphatidylcholine species associated with renal impairment and all-cause mortality in type 1 diabetes
+N Tofte, T Suvitaival, L Ahonen, SA Winther, S Theilade, M Frimodt-Møller, ...
+Scientific Reports 9, 16398	25	2019
+Stronger findings from mass spectral data through multi-peak modeling
+T Suvitaival, S Rogers, S Kaski
+BMC Bioinformatics 15, 208	21	2014
+Metabolomic assessment reveals alteration in polyols and branched chain amino acids associated with present and future renal impairment in a discovery cohort of 637 persons …
+N Tofte, T Suvitaival, K Trost, IM Mattila, S Theilade, SA Winther, ...
+Frontiers in Endocrinology 10, 818	20	2019
+Effect of metformin on plasma metabolite profile in the Copenhagen Insulin and Metformin Therapy (CIMT) trial
+N Safai, T Suvitaival, A Ali, P Spégel, M Al-Majdoub, B Carstensen, ...
+Diabetic Medicine 35 (7), 944-953	19	2018
+Targeted Clinical Metabolite Profiling Platform for the Stratification of Diabetic Patients
+L Ahonen, S Jäntti, T Suvitaival, S Theilade, C Risz, R Kostiainen, ...
+Metabolites 9 (9), 184	16	2019
+Integrated lipidomics and proteomics point to early blood-based changes in childhood preceding later development of psychotic experiences: evidence from the Avon Longitudinal …
+F Madrid-Gambin, M Föcking, S Sabherwal, M Heurich, JA English, ...
+Biological psychiatry 86 (1), 25-34	15	2019
+Platform for systems medicine research and diagnostic applications in psychotic disorders—The METSY project
+E Frank, D Maier, J Pajula, T Suvitaival, F Borgan, M Butz-Ostendorf, ...
+European Psychiatry 50, 40-46	15	2018
+Stronger findings for metabolomics through Bayesian modeling of multiple peaks and compound correlations
+T Suvitaival, S Rogers, S Kaski
+Bioinformatics 30 (17), i461-i467	12	2014
+Describing the fecal metabolome in cryogenically collected samples from healthy participants
+K Trošt, L Ahonen, T Suvitaival, N Christiansen, T Nielsen, M Thiele, ...
+Scientific Reports 10 (1), 1-8	11	2020
+Circulating metabolites and lipids are associated to diabetic retinopathy in individuals With type 1 diabetes
+VR Curovic, T Suvitaival, I Mattila, L Ahonen, K Trošt, S Theilade, ...
+Diabetes 69 (10), 2217-2226	9	2020
+Phenotypic Responses to a Lifestyle Intervention Do Not Account for Inter-Individual Variability in Glucose Tolerance for Individuals at High Risk of Type 2 Diabetes
+G O’Donoghue, A Kennedy, GS Andersen, B Carr, S Cleary, E Durkan, ...
+Frontiers in Physiology 10, 317	9	2019
+Cross-organism toxicogenomics with group factor analysis
+T Suvitaival, J Parkkinen, S Virtanen, S Kaski
+Systems Biomedicine 2 (1), e29291	9	2014
+Replication and cross-validation of type 2 diabetes subtypes based on clinical variables: an IMI-RHAPSODY study
+RC Slieker, LA Donnelly, H Fitipaldi, GA Bouland, GN Giordano, ...
+Diabetologia 64, 1982-1989	8	2021
+Gut microbiota profile and selected plasma metabolites in type 1 diabetes without and with stratification by albuminuria
+SA Winther, P Henriksen, JK Vogt, TH Hansen, L Ahonen, T Suvitaival, ...
+Diabetologia 63, 2713-2724	6	2020
+Graphical multi-way models
+I Huopaniemi, T Suvitaival, M Orešič, S Kaski
+Joint European Conference on Machine Learning and Knowledge Discovery in …	6	2010
+Cross-species translation of multi-way biomarkers
+T Suvitaival, I Huopaniemi, M Orešič, S Kaski
+International Conference on Artificial Neural Networks, 209-216	4	2011
+Distinct molecular signatures of clinical clusters in people with type 2 diabetes: an IMI-RHAPSODY study
+RC Slieker, LA Donnelly, H Fitipaldi, GA Bouland, GN Giordano, ...
+Diabetes 70 (11), 2683-2693	3	2021
+Lipidomics of human adipose tissue reveals diversity between body areas
+N Al-Sari, T Suvitaival, I Mattila, A Ali, L Ahonen, K Trost, TF Henriksen, ...
+PLoS ONE 15 (6), e0228521	3	2020
+Deregulation of the Purine Pathway in Pre-Transplant Liver Biopsies Is Associated with Graft Function and Survival after Transplantation
+J Xu, M Hassan-Ally, AM Casas-Ferreira, T Suvitaival, Y Ma, ...
+Journal of Clinical Medicine 9 (3), 711	3	2020
+Lipidomic Abnormalities During the Pathogenesis of Type 1 Diabetes: a Quantitative Review
+T Suvitaival
+Current Diabetes Reports 20, 46	2	2020
+Understanding the Lipidome at the Systems Level with lipidomeR
+T Suvitaival, C Legido-Quigley
+bioRxiv	2	2020
+Comprehensive lipidomics reveals phenotypic differences in hepatic lipid turnover in ALD and NAFLD during alcohol intoxication
+M Israelsen, M Kim, T Suvitaival, BS Madsen, CD Hansen, N Torp, K Trost, ...
+JHEP Reports 3 (5), 100325	1	2021
+Changes in the lipidome in type 1 diabetes following low carbohydrate diet: Post‐hoc analysis of a randomized crossover trial
+N Al‐Sari, S Schmidt, T Suvitaival, M Kim, K Trošt, AG Ranjan, ...
+Endocrinology, Diabetes & Metabolism, e00213		2021
+Characterization of plasma lipidomics in adolescent subjects with increased risk for type 1 diabetes in the DiPiS cohort
+AA Svärd, S Kaur, K Trôst, T Suvitaival, Å Lernmark, M Maziarz, F Pociot, ...
+Metabolomics 16 (10), 1-14		2020
+Bayesian Multi-Way Models for Data Translation in Computational Biology
+T Suvitaival
+Aalto University		2014
