@@ -441,9 +441,9 @@ plot.interactive
 
 widget <- plotly::partial_bundle( plot.interactive )
 
-dir.create( "output" )
+# dir.create( "output" )
 
-htmlwidgets::saveWidget( widget, "output/index.html" )
+# htmlwidgets::saveWidget( widget, "output/index.html" )
 
 ```
 
@@ -457,7 +457,9 @@ htmlwidgets::saveWidget( widget, "output/index.html" )
   src="output/index.html" 
   height="800" 
   width="800"
-></iframe>
+>
+widget
+</iframe>
 
 # SessionInfo
 
