@@ -283,6 +283,12 @@ result.clustering <-
     k = 8
   )
 
+# result.clustering <-
+#   cluster::pam(
+#     x = result.pca$"scores"[ , 1:2 ],
+#     k = 8
+#   )
+
 ```
 
 # Prepare Data for Plot
