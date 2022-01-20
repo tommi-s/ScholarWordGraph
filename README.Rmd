@@ -410,21 +410,54 @@ plot <-
 
 library( tidyr )
 
-plotly::ggplotly( 
-  p = plot,
-  tooltip = c( "label", "Publications" )
-) %>%
+plot.interactive <-
+  plotly::ggplotly( 
+    p = plot,
+    tooltip = c( "label", "Publications" )
+  ) %>%
   plotly::layout(
     legend = 
       list(
-      orientation = "h",
-      title = list( text = "Cluster" ),
-      x = quantile( x = data.plot$"Comp.2", probs = 0.67 ),
-      y = min( data.plot$"Comp.1" )
-    )
+        orientation = "h",
+        title = list( text = "Cluster" ),
+        x = quantile( x = data.plot$"Comp.2", probs = 0.67 ),
+        y = min( data.plot$"Comp.1" )
+      )
   )
 
 ```
+
+# View the Interactive Figure
+
+```{r}
+
+plot.interactive
+
+```
+
+# Export HTLM Widget
+
+```{r}
+
+widget <- plotly::partial_bundle( plot.interactive )
+
+dir.create( "output" )
+
+htmlwidgets::saveWidget( widget, "output/index.html" )
+
+```
+
+# View the Exported Widget
+
+<iframe 
+  id="igraph" 
+  scrolling="no" 
+  style="border:none;" 
+  seamless="seamless" 
+  src="output/index.html" 
+  height="800" 
+  width="800"
+></iframe>
 
 # SessionInfo
 
