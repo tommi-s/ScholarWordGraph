@@ -273,7 +273,7 @@ print( plot )
 
 ```
 
-# Cluster Words
+# Cluster the Words
 
 ```{r}
 
@@ -282,6 +282,12 @@ result.clustering <-
     x = wba.norm,
     k = 8
   )
+
+# result.clustering <-
+#   cluster::pam(
+#     x = result.pca$"scores"[ , 1:2 ],
+#     k = 8
+#   )
 
 ```
 
