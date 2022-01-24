@@ -1,6 +1,6 @@
 ---
 title: "Scholar WordGraph"
-author: Tommi Suvitaival, Steno Diabetes Center Copenhagen, tommi.raimo.leo.suvitaival@regionh.dk
+author: "Tommi Suvitaival, Steno Diabetes Center Copenhagen, tommi.raimo.leo.suvitaival@regionh.dk"
 date: "`r Sys.Date()`"
 output: 
   html_document:
@@ -12,7 +12,16 @@ output:
 always_allow_html: true
 ---
 
-# Load Data
+# Preparations
+
+1. Open a Google Scholar profile with browser (e.g., https://scholar.google.com/citations?user=SGgP0VQAAAAJ ).
+1. Go to the bottom of the page and click "SHOW MORE" to show all entries on the page.
+1. Go again to the bottom of the newly-expanded page.
+1. Select everything in the table, starting from the year of the last entry (on the bottom-right corner) and ending at the title of the first entry (on the top-left corner).
+1. Copy the selected text.
+1. Paste the text to a text editor and save as "data/publications.txt".
+
+# Load the Data
 
 ```{r}
 
@@ -26,13 +35,17 @@ data.loaded <-
   )
 
 ```
-# Format Data into Data Frame
+
+# Format the Data
+
+## Create a Data Frame of Articles
+
+* Create a matrix with articles as rows and title, authors and journal as the three columns.
+* Convert to a data frame.
 
 ```{r}
 
 data <- unlist( data.loaded )
-
-data <- data[ 1:( length( data ) - 4 ) ]
 
 data <-
   matrix(
@@ -56,36 +69,24 @@ data <-
 
 ```
 
-# Convert Titles to Lower Case
+## Convert Titles to Lower Case
+
+* To match identical words with different case, convert all to lowercase.
 
 ```{r}
 
 data$"Title.lower" <-
   tolower( data$"Title" )
 
-# Neutralize plurals and verbs.
+```
 
-# data$"Title.lower" <-
-#   stringr::str_replace_all(
-#     string = data$"Title.lower",
-#     pattern = "(s\\s)",
-#     replacement = " "
-#   )
-# 
-# data$"Title.lower" <-
-#   stringr::str_replace_all(
-#     string = data$"Title.lower",
-#     pattern = "(s\\:)",
-#     replacement = ""
-#   )
-# 
-# data$"Title.lower" <-
-#   stringr::str_replace_all(
-#     string = data$"Title.lower",
-#     pattern = "(s$)",
-#     replacement = ""
-#   )
+## Define Multi-Word Terms
 
+* Define word sequences that should be considered as a single term by adding replacing whitespace with underscore.
+* E.g., "type 1 diabetes" is one term.
+
+```{r}
+  
 data$"Title.lower" <-
   stringr::str_replace_all(
     string = data$"Title.lower",
@@ -97,14 +98,15 @@ data$"Title.lower" <-
 data$"Title.lower" <-
   stringr::str_replace_all(
     string = data$"Title.lower",
-    # pattern = "type 2 diabete",
     pattern = "type 2 diabetes",
     replacement = "type_2_diabetes"
   )
 
 ```
 
-# Omit Punctuation from Titles
+## Omit Special Characters
+
+* Omit punctuation and special characters from the titles.
 
 ```{r}
 
@@ -135,7 +137,10 @@ table.words <-
   )
 
 ```
-# Extract Unique Words
+
+## Extract Unique Words
+
+* List all unique words that appear in the titles.
 
 ```{r}
 
@@ -144,9 +149,13 @@ words.unique <-
     unique(
       unlist( words ) )
   )
+  
 ```
 
-# Define List of Blocked Words
+## Define List of Blocked Words
+
+* List general words that are not of interest.
+* Add plain numbers to this list.
 
 ```{r}
 
@@ -178,8 +187,6 @@ blocklist <-
     "during"
   )
 
-# words.unique <- words.unique[ !( words.unique %in% blocklist ) ]
-
 blocklist <- 
   c(
     blocklist,
@@ -187,6 +194,10 @@ blocklist <-
   )
 
 ```
+
+## Omit Blocked Words
+
+* Omit the blocked words from the words list of each article.
 
 ```{r}
 
@@ -212,7 +223,9 @@ words.unique <-
 
 ```
 
-# Create the Words-by-Articles Matrix
+# Create the Words-by-Articles Occurrence Matrix
+
+* Matrix that has value 1 if the word (row) appears in the article (column) and 0 otherwise.
 
 ```{r}
 
@@ -233,7 +246,9 @@ for ( i in 1:nrow( data ) ) {
 
 ```
 
-## Log-Transform Occurrences
+## Log-Transform the Occurrences
+
+* Trasform the occurrences with log (1+x) for a more Gaussian-like distribution.
 
 ```{r}
 
@@ -241,12 +256,21 @@ wba.log1px <- log10( 1 + wba )
 
 ```
 
-## Compute PCA
+## Autoscale the Occurrence Profiles
+
+* Scale the data for PCA.
 
 ```{r}
 
 wba.norm <- scale( wba.log1px )
-# wba.norm <- scale( wba )
+
+```
+
+# Principal Component Analysis
+
+## Compute PCA
+
+```{r}
 
 result.pca <-
   princomp(
@@ -255,7 +279,7 @@ result.pca <-
 
 ```
 
-# Plot PCA
+## Plot PCA
 
 ```{r}
 
@@ -264,7 +288,7 @@ library( "ggfortify" )
 plot <-
   autoplot( 
     result.pca
-    ,
+    # ,
     # loadings = TRUE,
     # loadings.label = TRUE
   )
@@ -275,6 +299,8 @@ print( plot )
 
 # Cluster the Words
 
+* Using a fixed number of eight clusters for a suitable visual representation.
+
 ```{r}
 
 result.clustering <-
@@ -283,19 +309,19 @@ result.clustering <-
     k = 8
   )
 
-# result.clustering <-
-#   cluster::pam(
-#     x = result.pca$"scores"[ , 1:2 ],
-#     k = 8
-#   )
-
 ```
 
-# Prepare Data for Plot
+# Figure
+
+## Prepare Results for the Visualization
+
+* Extract PCA-scores of the two first components.
+* Extract cluster assignments for each data point.
+* Compute each data point's Euclidean distance from the origin.
+* Wrap multi-word terms to multiple lines for better visual impression.
+* Create a text string listing all the article titles, where the term appears.
 
 ```{r}
-
-jitter <- 1
 
 data.plot <-
   data.frame(
@@ -303,20 +329,17 @@ data.plot <-
     result.pca$"scores"
   )
 
-# data.plot$"Comp.1.jittered" <- 
-#   data.plot$"Comp.1" + 
-#   rnorm(
-#     n = nrow( data.plot ),
-#     sd = jitter
-#   )
-# 
-# data.plot$"Comp.2.jittered" <- 
-#   data.plot$"Comp.2" + 
-#   rnorm(
-#     n = nrow( data.plot ),
-#     sd = jitter
-#   )
-
+data.plot$"Cluster" <- 
+  factor(
+    x = result.clustering$"clustering",
+    levels = 1:length( unique( result.clustering$"clustering" ) ),
+    labels = 
+      c(
+        "Cluster (C) 1",
+        paste( "C", 2:length( unique( result.clustering$"clustering" ) ) )
+      )
+  )
+  
 data.plot$"Distance" <- 
   sqrt( data.plot$"Comp.1"^2 + data.plot$"Comp.2"^2 ) + 1
 
@@ -334,17 +357,7 @@ data.plot$"Term" <-
     replacement = "\n"
   )
 
-data.plot$"Cluster" <- 
-  as.factor( result.clustering$"clustering" )
-  # as.factor(
-  #   paste(
-  #     "C",
-  #     result.clustering$"clustering"
-  #   )
-  # )
-
 data.plot$"Publications" <-
-  # tmp <-
   apply(
     X = wba[ data.plot$"Word", ] == 1,
     MAR = 1,
@@ -356,17 +369,28 @@ data.plot$"Publications" <-
         ),
         collapse = "\n"
       )
-      # names( which( x ) )
     }
   )
 
 ```
 
-# Define the Figure
+## Define the Figure
+
+* Visualization with ggplot2.
+* PCA components 1 and 2, respectively, on the y- and x-axes.
+* Term name as text label.
+* Distance from origin as (increasing) size.
+* Cluster assignment as color.
+* Add jitter to reduce overlap of similar terms.
+* Use pseudo-log-valued axes for reduced outliers.
+* 
 
 ```{r}
 
+jitter <- 1
+
 palette <- RColorBrewer::brewer.pal( n = 9, "Set1" )[ -6 ]
+palette <- palette[ 1:nlevels( data.plot$"Cluster" ) ]
 
 plot <-
   ggplot2::ggplot(
@@ -382,35 +406,30 @@ plot <-
         color = Cluster,
       )
   ) +
-  # ggplot2::geom_point() +
   ggplot2::geom_text(
     position =
       ggplot2::position_jitter(
         height = jitter,
         width = jitter
       )
-    # ,
-    # show_guide = FALSE
   ) +
   ggplot2::scale_x_continuous( trans = "pseudo_log" ) +
   ggplot2::scale_y_continuous( trans = "pseudo_log" ) +
   ggplot2::theme(
-    axis.text = ggplot2::element_blank(),
+    axis.text.y = ggplot2::element_blank(),
     axis.ticks = ggplot2::element_blank()
-    # ,
-    # legend.position = "none"
   ) +
-  ggplot2::xlab( label = "" ) +
+  ggplot2::xlab( label = "\n\n\nMap of my research topics" ) +
   ggplot2::ylab( label = "" ) +
   ggplot2::scale_color_manual( values = palette )
-#+
-  # ggplot2::scale_color_brewer( palette = "Set1" )
-# +
-  # ggplot2::theme_classic()
 
 ```
 
-# Create the Interactive Figure
+## Create the Interactive Figure
+
+* Make ggplot2 figure interactive with the *ggplotly*-function from the *plotly*-package.
+* Show the term and the articles, where it appears, as text (tooltip) when hovering over a data point.
+* Use the layout-function for fine-tuning of the legend.
 
 ```{r}
 
@@ -425,7 +444,7 @@ plot.interactive <-
     legend = 
       list(
         orientation = "h",
-        title = list( text = "Cluster" ),
+        title = list( text = "Cluster<br>" ),
         x = quantile( x = data.plot$"Comp.2", probs = 0.67 ),
         y = min( data.plot$"Comp.1" )
       )
@@ -433,7 +452,7 @@ plot.interactive <-
 
 ```
 
-# View the Interactive Figure
+## View the Interactive Figure
 
 ```{r}
 
@@ -441,7 +460,10 @@ plot.interactive
 
 ```
 
-# Export HTLM Widget
+## Export HTML Widget
+
+* Create a stand-alone html-widget of the figure with the *partial_bundle* function from the *plotly*-package.
+* Save the widget with the *saveWidget*-function from the *htmlWidgets*-package.
 
 ```{r}
 
@@ -455,12 +477,96 @@ widget <- plotly::partial_bundle( plot.interactive )
 
 # View the Exported Widget
 
+* View the exported (saved) stand-alone widget with in an *iframe* in a html-document.
+
 <iframe 
   id="igraph" 
   scrolling="no" 
   style="border:none;" 
   seamless="seamless" 
   src="output/index.html" 
+  height="800" 
+  width="800"
+>
+widget
+</iframe>
+
+# Figure with a Dark Layout
+
+## Define the Figure
+
+* Create the same figure with a dark layout, suitable for dark webpages.
+
+```{r}
+
+plot.dark <-
+  plot +
+  ggplot2::theme(
+    axis.text = ggplot2::element_blank(),
+    axis.ticks = ggplot2::element_blank(),
+    axis.title = ggplot2::element_text( color = "gray" ),
+    legend.background = ggplot2::element_rect( color = NA, fill = "black" ),
+    legend.key = ggplot2::element_rect( color = "gray",  fill = "gray" ),      
+    legend.text = ggplot2::element_text( color = "gray" ),
+    legend.title = ggplot2::element_text( color = "gray" ),
+    panel.background = ggplot2::element_rect( fill = "black", color  = NA ),
+    panel.grid = ggplot2::element_blank(),
+    plot.background = ggplot2::element_rect( color = "black", fill = "black" )
+  )
+
+```
+
+## Create the Interactive Figure
+
+```{r}
+
+library( tidyr )
+
+plot.dark.interactive <-
+  plotly::ggplotly( 
+    p = plot.dark,
+    tooltip = c( "label", "Publications" )
+  ) %>%
+  plotly::layout(
+    legend = 
+      list(
+        orientation = "h",
+        title = list( text = "Cluster<br>" ),
+        x = quantile( x = data.plot$"Comp.2", probs = 0.67 ),
+        y = min( data.plot$"Comp.1" )
+      )
+  )
+
+```
+
+## View the Interactive Figure
+
+```{r}
+
+plot.dark.interactive
+
+```
+
+## Export HTLM Widget
+
+```{r}
+
+widget <- plotly::partial_bundle( plot.dark.interactive )
+
+# dir.create( "output-dark" )
+
+# htmlwidgets::saveWidget( widget, "output-dark/index.html" )
+
+```
+
+## View the Exported Widget
+
+<iframe 
+  id="igraph" 
+  scrolling="no" 
+  style="border:none;" 
+  seamless="seamless" 
+  src="output-dark/index.html" 
   height="800" 
   width="800"
 >
