@@ -336,14 +336,15 @@ print( plot )
 
 # Cluster the Words
 
-* Using a fixed number of eight clusters for a suitable visual representation.
+* Using a fixed number of nine clusters for a suitable visual representation with recognizable colors.
 
 ```{r Clustering}
 
 result.clustering <-
   cluster::pam(
-    x = wba.norm,
-    k = 8
+    x = result.pca$scores[ , 1:2 ], # based on PCA scores
+    # x = wba.norm, # alternatively, based on original high-dimensional data
+    k = 9
   )
 
 ```
@@ -409,6 +410,11 @@ data.plot$"Publications" <-
     }
   )
 
+data.plot <- 
+  data.plot[ 
+    order( data.plot$"Distance", decreasing = FALSE ),
+  ]
+
 ```
 
 ## Define the Figure
@@ -424,9 +430,6 @@ data.plot$"Publications" <-
 ```{r Figure-Define}
 
 jitter <- 1
-
-palette <- RColorBrewer::brewer.pal( n = 9, "Set1" )[ -6 ]
-palette <- palette[ 1:nlevels( data.plot$"Cluster" ) ]
 
 plot <-
   ggplot2::ggplot(
@@ -452,12 +455,12 @@ plot <-
   ggplot2::scale_x_continuous( trans = "pseudo_log" ) +
   ggplot2::scale_y_continuous( trans = "pseudo_log" ) +
   ggplot2::theme(
-    axis.text.y = ggplot2::element_blank(),
+    axis.text = ggplot2::element_blank(),
     axis.ticks = ggplot2::element_blank()
   ) +
   ggplot2::xlab( label = "\n\n\nMap of my research topics" ) +
   ggplot2::ylab( label = "" ) +
-  ggplot2::scale_color_manual( values = palette )
+  ggplot2::scale_color_brewer( palette = "Set1" )
 
 ```
 
@@ -498,6 +501,13 @@ plot.interactive <-
 
 ## View the Interactive Figure
 
+* Words are shown on the map in increasing size with regard their PCA-score.
+* Hover over a word to reveal, which article titles it occurs in.
+* Clusters shown with distinct colors.
+* Double-click on a cluster (Cs) in the legend to show it alone (and double-click again to return).
+* Single-click on a cluster to hide it (and click again to return.
+* Select area to zoom in the map (and double click the map area to return).
+
 ```{r Figure-Interactive-Show}
 
 plot.interactive
@@ -509,12 +519,14 @@ plot.interactive
 * Create a stand-alone html-widget of the figure with the **partial_bundle** function from the **plotly**-package.
 * Save the widget with the **saveWidget**-function from the **htmlWidgets**-package.
 
+(Uncomment for saving the files.)
+
 ```{r Figure-Interactive-Export}
 
 widget <- plotly::partial_bundle( plot.interactive )
 
 # dir.create( "output" )
-
+# 
 # htmlwidgets::saveWidget( widget, "output/index.html" )
 
 ```
@@ -522,6 +534,22 @@ widget <- plotly::partial_bundle( plot.interactive )
 # View the Exported Widget
 
 * View the exported (saved) stand-alone widget with in an **iframe** in a html-document.
+
+```text
+
+<iframe 
+  id="igraph" 
+  scrolling="no" 
+  style="border:none;" 
+  seamless="seamless" 
+  src="output/index.html" 
+  height="800" 
+  width="800"
+>
+widget
+</iframe>
+
+```
 
 <iframe 
   id="igraph" 
@@ -601,17 +629,35 @@ plot.dark.interactive
 
 ## Export HTLM Widget
 
+(Uncomment for saving the files.)
+
 ```{r Figure-Interactive-Dark-Export}
 
 widget <- plotly::partial_bundle( plot.dark.interactive )
 
 # dir.create( "output-dark" )
-
+# 
 # htmlwidgets::saveWidget( widget, "output-dark/index.html" )
 
 ```
 
 ## View the Exported Widget
+
+```text
+
+<iframe 
+  id="igraph" 
+  scrolling="no" 
+  style="border:none;" 
+  seamless="seamless" 
+  src="output-dark/index.html" 
+  height="800" 
+  width="800"
+>
+widget
+</iframe>
+
+```
 
 <iframe 
   id="igraph" 
@@ -641,6 +687,7 @@ utils::sessionInfo()
 
 if ( file.exists( "README.html" ) ) {
   
+  system( command = "rm index.html" )
   system( command = "cp README.html index.html" )
   
 }
