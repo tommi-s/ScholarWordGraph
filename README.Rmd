@@ -102,8 +102,7 @@ data <-
 
 ```{r Tolower}
 
-data$"Title.lower" <-
-  tolower( data$"Title" )
+data$"Title.lower" <- tolower( data$"Title" )
 
 ```
 
@@ -117,7 +116,6 @@ data$"Title.lower" <-
 data$"Title.lower" <-
   stringr::str_replace_all(
     string = data$"Title.lower",
-    # pattern = "type 1 diabete",
     pattern = "type 1 diabetes",
     replacement = "type_1_diabetes"
   )
@@ -131,17 +129,23 @@ data$"Title.lower" <-
 
 ```
 
-## Omit Special Characters
+## Extract Words from the Titles
 
-* Omit punctuation and special characters from the titles.
-
-```{r Omit-Punctuation}
+```{r Words-Extract}
 
 words <-
   stringr::str_split(
     string = data[ , "Title.lower" ],
     pattern = "\\s"
   )
+
+``` 
+
+## Omit Special Characters
+
+* Omit punctuation and special characters from the titles.
+
+```{r Omit-Punctuation}
 
 words <- 
   lapply(
@@ -183,7 +187,7 @@ words.unique <-
 
 ## Define List of Blocked Words
 
-* List general words that are not of interest.
+* List general words that are non-informative.
 * Add plain numbers to this list.
 
 ```{r Blocklist}
@@ -342,8 +346,8 @@ print( plot )
 
 result.clustering <-
   cluster::pam(
-    x = result.pca$scores[ , 1:2 ], # based on PCA scores
-    # x = wba.norm, # alternatively, based on original high-dimensional data
+    x = result.pca$scores[ , 1:2 ], # based on the scores on the first two principal components
+    # x = wba.norm, # alternatively, based on the original high-dimensional data
     k = 9
   )
 
@@ -504,8 +508,8 @@ plot.interactive <-
 * Words are shown on the map in increasing size with regard their PCA-score.
 * Hover over a word to reveal, which article titles it occurs in.
 * Clusters shown with distinct colors.
-* Double-click on a cluster (Cs) in the legend to show it alone (and double-click again to return).
-* Single-click on a cluster to hide it (and click again to return.
+* Double-click a cluster (Cs) in the legend to show it alone (and double-click again to return).
+* Single-click a cluster to hide it (and click again to return).
 * Select area to zoom in the map (and double click the map area to return).
 
 ```{r Figure-Interactive-Show}
@@ -681,7 +685,7 @@ utils::sessionInfo()
 
 # Appendix
 
-* Copy README.html to index.html to view this script on Github Pages.
+* Copy README.html to index.html to show this document on Github Pages.
 
 ```{r index-html}
 
