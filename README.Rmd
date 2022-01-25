@@ -17,6 +17,26 @@ output:
 always_allow_html: true
 ---
 
+# Introduction
+
+This is a tutorial script to producing an interactive visualization of words in a publication list extracted from [Google Scholar](https://scholar.google.com/). The appearance of the words is dependent on the frequency of their occurrence, and on which words they co-occur with in the titles of the listed articles.
+
+The code is for R and it is, among others, based on packages [ggplot2](https://ggplot2.tidyverse.org/), [plotly](https://plotly.com/r/) and [htmlWidgets](https://www.htmlwidgets.org/).
+
+This document is part of the Github repository [ScholarWordGraph](https://github.com/tommi-s/ScholarWordGraph) by [Tommi Suvitaival](https://tommi-s.com/).
+
+<iframe 
+  id="igraph" 
+  scrolling="no" 
+  style="border:none;" 
+  seamless="seamless" 
+  src="output-dark/index.html" 
+  height="800" 
+  width="800"
+>
+widget
+</iframe>
+
 # Preparations
 
 1. Open a Google Scholar profile with browser (e.g., https://scholar.google.com/citations?user=SGgP0VQAAAAJ ).
@@ -24,7 +44,7 @@ always_allow_html: true
 1. Go again to the bottom of the newly-expanded page.
 1. Select everything in the table, starting from the year of the last entry (on the bottom-right corner) and ending at the title of the first entry (on the top-left corner).
 1. Copy the selected text.
-1. Paste the text to a text editor and save as "data/publications.txt" (see example in the present repository).
+1. Paste the text to a text editor and save as "data/publications.txt" (see [example](https://github.com/tommi-s/ScholarWordGraph/blob/main/data/publications.txt) in the present repository).
 
 # Load the Data
 
@@ -141,6 +161,8 @@ table.words <-
     decreasing = TRUE
   )
 
+head( table.words )
+
 ```
 
 ## Extract Unique Words
@@ -166,30 +188,30 @@ words.unique <-
 
 blocklist <-
   c(
-    "in",
-    "of",
     "and",
-    "the",
-    "with",
-    "for",
-    "from",
-    "to",
-    "...",
     "an",
-    "at",
-    "on",
-    letters,
     "after",
     "are",
     "as",
+    "at",
     "based",
     "by",
     "do",
+    "during",
+    "for",
+    "from",
+    "in",
     "is",
+    "of",
+    "on",
     "not",
-    "without",
+    "the",
+    "to",
     "through",
-    "during"
+    "with",
+    "without",
+    "...",
+    letters
   )
 
 blocklist <- 
@@ -213,6 +235,14 @@ words <-
       x[ !( x %in% blocklist ) ]
     }
   )
+
+table.words <- 
+  sort(
+    x = table( unlist( words ) ),
+    decreasing = TRUE
+  )
+
+head( table.words )
 
 ```
 
@@ -388,7 +418,6 @@ data.plot$"Publications" <-
 * Cluster assignment as color.
 * Add jitter to reduce overlap of similar terms.
 * Use pseudo-log-valued axes for reduced outliers.
-* 
 
 ```{r Figure-Define}
 
@@ -440,7 +469,7 @@ plot
 
 ## Create the Interactive Figure
 
-* Make ggplot2 figure interactive with the *ggplotly*-function from the *plotly*-package.
+* Make ggplot2 figure interactive with the **ggplotly**-function from the **plotly**-package.
 * Show the term and the articles, where it appears, as text (tooltip) when hovering over a data point.
 * Use the layout-function for fine-tuning of the legend.
 
@@ -475,8 +504,8 @@ plot.interactive
 
 ## Export HTML Widget
 
-* Create a stand-alone html-widget of the figure with the *partial_bundle* function from the *plotly*-package.
-* Save the widget with the *saveWidget*-function from the *htmlWidgets*-package.
+* Create a stand-alone html-widget of the figure with the **partial_bundle** function from the **plotly**-package.
+* Save the widget with the **saveWidget**-function from the **htmlWidgets**-package.
 
 ```{r Figure-Interactive-Export}
 
@@ -490,7 +519,7 @@ widget <- plotly::partial_bundle( plot.interactive )
 
 # View the Exported Widget
 
-* View the exported (saved) stand-alone widget with in an *iframe* in a html-document.
+* View the exported (saved) stand-alone widget with in an **iframe** in a html-document.
 
 <iframe 
   id="igraph" 
