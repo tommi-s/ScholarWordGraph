@@ -1,0 +1,632 @@
+---
+title: "Scholar WordGraph"
+author: "Tommi Suvitaival, Steno Diabetes Center Copenhagen, tommi.raimo.leo.suvitaival@regionh.dk"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    keep_md: true
+    fig_width: 8
+    fig_height: 8
+    dev: jpeg
+    toc: yes
+  github_document:
+    fig_width: 8
+    fig_height: 8
+    dev: jpeg
+    toc: yes
+always_allow_html: true
+---
+
+# Introduction
+
+This is a tutorial script to producing an interactive visualization of words in a publication list extracted from [Google Scholar](https://scholar.google.com/). The appearance of the words is dependent on the frequency of their occurrence, and on which words they co-occur with in the titles of the listed articles.
+
+The code is for R and it is, among others, based on packages [ggplot2](https://ggplot2.tidyverse.org/), [plotly](https://plotly.com/r/) and [htmlWidgets](https://www.htmlwidgets.org/).
+
+This document is part of the Github repository [ScholarWordGraph](https://github.com/tommi-s/ScholarWordGraph) by [Tommi Suvitaival](https://tommi-s.com/).
+
+<iframe 
+  id="igraph" 
+  scrolling="no" 
+  style="border:none;" 
+  seamless="seamless" 
+  src="output-dark/index.html" 
+  height="800" 
+  width="800"
+>
+widget
+</iframe>
+
+# Preparations
+
+1. Open a Google Scholar profile with browser (e.g., https://scholar.google.com/citations?user=SGgP0VQAAAAJ ).
+1. Go to the bottom of the page and click "SHOW MORE" to show all entries on the page.
+1. Go again to the bottom of the newly-expanded page.
+1. Select everything in the table, starting from the year of the last entry (on the bottom-right corner) and ending at the title of the first entry (on the top-left corner).
+1. Copy the selected text.
+1. Paste the text to a text editor and save as "data/publications.txt" (see [example](https://github.com/tommi-s/ScholarWordGraph/blob/main/data/publications.txt) in the present repository).
+
+# Load the Data
+
+```{r Load}
+
+data.loaded <- 
+  readr::read_delim(
+    file = "data/publications.txt",
+    delim = "\t",
+    escape_double = FALSE,
+    col_names = FALSE,
+    trim_ws = TRUE
+  )
+
+```
+
+# Format the Data
+
+## Create a Data Frame of Articles
+
+* Create a matrix with articles as rows and title, authors and journal as the three columns.
+* Convert to a data frame.
+
+```{r Matrix}
+
+data <- unlist( data.loaded )
+
+data <-
+  matrix(
+    data = unlist( data ),
+    ncol = 3,
+    byrow = TRUE
+  )
+
+colnames( data ) <-
+  c(
+    "Title",
+    "Authors",
+    "Journal"
+  )
+
+data <-
+  data.frame(
+    data,
+    stringsAsFactors = FALSE
+  )
+
+```
+
+## Convert Titles to Lower Case
+
+* To match identical words with different case, convert all to lowercase.
+
+```{r Tolower}
+
+data$"Title.lower" <-
+  tolower( data$"Title" )
+
+```
+
+## Define Multi-Word Terms
+
+* Define word sequences that should be considered as a single term by adding replacing whitespace with underscore.
+* E.g., "type 1 diabetes" is one term.
+
+```{r Multi-Word-Terms}
+  
+data$"Title.lower" <-
+  stringr::str_replace_all(
+    string = data$"Title.lower",
+    # pattern = "type 1 diabete",
+    pattern = "type 1 diabetes",
+    replacement = "type_1_diabetes"
+  )
+
+data$"Title.lower" <-
+  stringr::str_replace_all(
+    string = data$"Title.lower",
+    pattern = "type 2 diabetes",
+    replacement = "type_2_diabetes"
+  )
+
+```
+
+## Omit Special Characters
+
+* Omit punctuation and special characters from the titles.
+
+```{r Omit-Punctuation}
+
+words <-
+  stringr::str_split(
+    string = data[ , "Title.lower" ],
+    pattern = "\\s"
+  )
+
+words <- 
+  lapply(
+    X = words,
+    FUN = tolower
+  )
+
+words <-
+  lapply(
+    X = words,
+    FUN = stringr::str_replace_all,
+    pattern = "(\\()|(\\))|(\\:)|(\\,)|(\\.)",
+    replacement = ""
+  )
+
+table.words <- 
+  sort(
+    x = table( unlist( words ) ),
+    decreasing = TRUE
+  )
+
+head( table.words )
+
+```
+
+## Extract Unique Words
+
+* List all unique words that appear in the titles.
+
+```{r Words-Unique}
+
+words.unique <-
+  sort(
+    unique(
+      unlist( words ) )
+  )
+  
+```
+
+## Define List of Blocked Words
+
+* List general words that are not of interest.
+* Add plain numbers to this list.
+
+```{r Blocklist}
+
+blocklist <-
+  c(
+    "and",
+    "an",
+    "after",
+    "are",
+    "as",
+    "at",
+    "based",
+    "by",
+    "do",
+    "during",
+    "for",
+    "from",
+    "in",
+    "is",
+    "of",
+    "on",
+    "not",
+    "the",
+    "to",
+    "through",
+    "with",
+    "without",
+    "...",
+    letters
+  )
+
+blocklist <- 
+  c(
+    blocklist,
+    words.unique[ grepl( x = words.unique, pattern = "^[0-9]+$" ) ]
+  )
+
+```
+
+## Omit Blocked Words
+
+* Omit the blocked words from the words list of each article.
+
+```{r Omit-Blocklisted}
+
+words <-
+  lapply(
+    X = words,
+    FUN = function( x ) {
+      x[ !( x %in% blocklist ) ]
+    }
+  )
+
+table.words <- 
+  sort(
+    x = table( unlist( words ) ),
+    decreasing = TRUE
+  )
+
+head( table.words )
+
+```
+
+# Re-Extract Unique Words
+
+```{r Words-Unique-Update}
+
+words.unique <-
+  sort(
+    unique(
+      unlist( words ) )
+  )
+
+```
+
+# Create the Words-by-Articles Occurrence Matrix
+
+* Matrix that has value 1 if the word (row) appears in the article (column) and 0 otherwise.
+
+```{r Words-by-Articles}
+
+wba <-
+  array(
+    data = 0,
+    dim = c( length( words.unique ), nrow( data ) )
+  )
+
+rownames( wba ) <- words.unique
+colnames( wba ) <- data[ , "Title" ]
+
+for ( i in 1:nrow( data ) ) {
+  
+  wba[ words[[ i ]], i ] <- 1
+  
+}
+
+```
+
+## Log-Transform the Occurrences
+
+* Trasform the occurrences with log (1+x) for a more Gaussian-like distribution.
+
+```{r Log-Transform}
+
+wba.log1px <- log10( 1 + wba )
+
+```
+
+## Autoscale the Occurrence Profiles
+
+* Scale the data for PCA.
+
+```{r Autoscale}
+
+wba.norm <- scale( wba.log1px )
+
+```
+
+# Principal Component Analysis
+
+## Compute PCA
+
+```{r PCA-Compute}
+
+result.pca <-
+  princomp(
+    x = wba.norm
+  )
+
+```
+
+## Plot PCA
+
+```{r PCA-Plot}
+
+library( "ggfortify" )
+
+plot <-
+  autoplot( 
+    result.pca
+    # ,
+    # loadings = TRUE,
+    # loadings.label = TRUE
+  )
+
+print( plot )
+
+```
+
+# Cluster the Words
+
+* Using a fixed number of eight clusters for a suitable visual representation.
+
+```{r Clustering}
+
+result.clustering <-
+  cluster::pam(
+    x = wba.norm,
+    k = 8
+  )
+
+```
+
+# Figure
+
+## Prepare Results for the Visualization
+
+* Extract PCA-scores of the two first components.
+* Extract cluster assignments for each data point.
+* Compute each data point's Euclidean distance from the origin.
+* Wrap multi-word terms to multiple lines for better visual impression.
+* Create a text string listing all the article titles, where the term appears.
+
+```{r Data-for-Figure}
+
+data.plot <-
+  data.frame(
+    Word = rownames( result.pca$"scores" ),
+    result.pca$"scores"
+  )
+
+data.plot$"Cluster" <- 
+  factor(
+    x = result.clustering$"clustering",
+    levels = 1:length( unique( result.clustering$"clustering" ) ),
+    labels = 
+      c(
+        "Cluster (C) 1",
+        paste( "C", 2:length( unique( result.clustering$"clustering" ) ) )
+      )
+  )
+  
+data.plot$"Distance" <- 
+  sqrt( data.plot$"Comp.1"^2 + data.plot$"Comp.2"^2 ) + 1
+
+data.plot$"Term" <-
+  stringr::str_replace_all(
+    string = data.plot$"Word",
+    pattern = "\\-",
+    replacement = "-\n"
+  )
+
+data.plot$"Term" <-
+  stringr::str_replace_all(
+    string = data.plot$"Word",
+    pattern = "\\_",
+    replacement = "\n"
+  )
+
+data.plot$"Publications" <-
+  apply(
+    X = wba[ data.plot$"Word", ] == 1,
+    MAR = 1,
+    FUN = function( x ) {
+      paste(
+        "\n",
+        names(
+          which( x )
+        ),
+        collapse = "\n"
+      )
+    }
+  )
+
+```
+
+## Define the Figure
+
+* Visualization with ggplot2.
+* PCA components 1 and 2, respectively, on the y- and x-axes.
+* Term name as text label.
+* Distance from origin as (increasing) size.
+* Cluster assignment as color.
+* Add jitter to reduce overlap of similar terms.
+* Use pseudo-log-valued axes for reduced outliers.
+
+```{r Figure-Define}
+
+jitter <- 1
+
+palette <- RColorBrewer::brewer.pal( n = 9, "Set1" )[ -6 ]
+palette <- palette[ 1:nlevels( data.plot$"Cluster" ) ]
+
+plot <-
+  ggplot2::ggplot(
+    data = data.plot,
+    mapping =
+      ggplot2::aes(
+        x = Comp.2,
+        y = Comp.1,
+        label = Term,
+        size = Distance,
+        text = Publications
+        ,
+        color = Cluster,
+      )
+  ) +
+  ggplot2::geom_text(
+    position =
+      ggplot2::position_jitter(
+        height = jitter,
+        width = jitter
+      )
+  ) +
+  ggplot2::scale_x_continuous( trans = "pseudo_log" ) +
+  ggplot2::scale_y_continuous( trans = "pseudo_log" ) +
+  ggplot2::theme(
+    axis.text.y = ggplot2::element_blank(),
+    axis.ticks = ggplot2::element_blank()
+  ) +
+  ggplot2::xlab( label = "\n\n\nMap of my research topics" ) +
+  ggplot2::ylab( label = "" ) +
+  ggplot2::scale_color_manual( values = palette )
+
+```
+
+## Show the (Passive) Figure
+
+```{r Figure-Show}
+
+plot
+
+```
+
+## Create the Interactive Figure
+
+* Make ggplot2 figure interactive with the **ggplotly**-function from the **plotly**-package.
+* Show the term and the articles, where it appears, as text (tooltip) when hovering over a data point.
+* Use the layout-function for fine-tuning of the legend.
+
+```{r Figure-Interactive-Define}
+
+library( tidyr )
+
+plot.interactive <-
+  plotly::ggplotly( 
+    p = plot,
+    tooltip = c( "label", "Publications" )
+  ) %>%
+  plotly::layout(
+    legend = 
+      list(
+        orientation = "h",
+        title = list( text = "Cluster<br>" ),
+        x = quantile( x = data.plot$"Comp.2", probs = 0.67 ),
+        y = min( data.plot$"Comp.1" )
+      )
+  )
+
+```
+
+## View the Interactive Figure
+
+```{r Figure-Interactive-Show}
+
+plot.interactive
+
+```
+
+## Export HTML Widget
+
+* Create a stand-alone html-widget of the figure with the **partial_bundle** function from the **plotly**-package.
+* Save the widget with the **saveWidget**-function from the **htmlWidgets**-package.
+
+```{r Figure-Interactive-Export}
+
+widget <- plotly::partial_bundle( plot.interactive )
+
+# dir.create( "output" )
+
+# htmlwidgets::saveWidget( widget, "output/index.html" )
+
+```
+
+# View the Exported Widget
+
+* View the exported (saved) stand-alone widget with in an **iframe** in a html-document.
+
+<iframe 
+  id="igraph" 
+  scrolling="no" 
+  style="border:none;" 
+  seamless="seamless" 
+  src="output/index.html" 
+  height="800" 
+  width="800"
+>
+widget
+</iframe>
+
+# Figure with a Dark Layout
+
+## Define the Figure
+
+* Create the same figure with a dark layout, suitable for dark webpages.
+
+```{r Figure-Dark-Define}
+
+plot.dark <-
+  plot +
+  ggplot2::theme(
+    axis.text = ggplot2::element_blank(),
+    axis.ticks = ggplot2::element_blank(),
+    axis.title = ggplot2::element_text( color = "gray" ),
+    legend.background = ggplot2::element_rect( color = NA, fill = "black" ),
+    legend.key = ggplot2::element_rect( color = "gray",  fill = "gray" ),      
+    legend.text = ggplot2::element_text( color = "gray" ),
+    legend.title = ggplot2::element_text( color = "gray" ),
+    panel.background = ggplot2::element_rect( fill = "black", color  = NA ),
+    panel.grid = ggplot2::element_blank(),
+    plot.background = ggplot2::element_rect( color = "black", fill = "black" )
+  )
+
+```
+
+## Show the (Passive) Figure
+
+```{r Figure-Dark-Show}
+
+plot.dark
+
+```
+
+## Create the Interactive Figure
+
+```{r Figure-Interactive-Dark-Define}
+
+library( tidyr )
+
+plot.dark.interactive <-
+  plotly::ggplotly( 
+    p = plot.dark,
+    tooltip = c( "label", "Publications" )
+  ) %>%
+  plotly::layout(
+    legend = 
+      list(
+        orientation = "h",
+        title = list( text = "Cluster<br>" ),
+        x = quantile( x = data.plot$"Comp.2", probs = 0.67 ),
+        y = min( data.plot$"Comp.1" )
+      )
+  )
+
+```
+
+## View the Interactive Figure
+
+```{r Figure-Interactive-Dark-Show}
+
+plot.dark.interactive
+
+```
+
+## Export HTLM Widget
+
+```{r Figure-Interactive-Dark-Export}
+
+widget <- plotly::partial_bundle( plot.dark.interactive )
+
+# dir.create( "output-dark" )
+
+# htmlwidgets::saveWidget( widget, "output-dark/index.html" )
+
+```
+
+## View the Exported Widget
+
+<iframe 
+  id="igraph" 
+  scrolling="no" 
+  style="border:none;" 
+  seamless="seamless" 
+  src="output-dark/index.html" 
+  height="800" 
+  width="800"
+>
+widget
+</iframe>
+
+# SessionInfo
+
+```{r SessionInfo}
+
+utils::sessionInfo()
+
+```
