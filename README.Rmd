@@ -9,6 +9,11 @@ output:
     fig_height: 8
     dev: jpeg
     toc: yes
+  github_document:
+    fig_width: 8
+    fig_height: 8
+    dev: jpeg
+    toc: yes
 always_allow_html: true
 ---
 
@@ -19,11 +24,11 @@ always_allow_html: true
 1. Go again to the bottom of the newly-expanded page.
 1. Select everything in the table, starting from the year of the last entry (on the bottom-right corner) and ending at the title of the first entry (on the top-left corner).
 1. Copy the selected text.
-1. Paste the text to a text editor and save as "data/publications.txt".
+1. Paste the text to a text editor and save as "data/publications.txt" (see example in the present repository).
 
 # Load the Data
 
-```{r}
+```{r Load}
 
 data.loaded <- 
   readr::read_delim(
@@ -43,7 +48,7 @@ data.loaded <-
 * Create a matrix with articles as rows and title, authors and journal as the three columns.
 * Convert to a data frame.
 
-```{r}
+```{r Matrix}
 
 data <- unlist( data.loaded )
 
@@ -73,7 +78,7 @@ data <-
 
 * To match identical words with different case, convert all to lowercase.
 
-```{r}
+```{r Tolower}
 
 data$"Title.lower" <-
   tolower( data$"Title" )
@@ -85,7 +90,7 @@ data$"Title.lower" <-
 * Define word sequences that should be considered as a single term by adding replacing whitespace with underscore.
 * E.g., "type 1 diabetes" is one term.
 
-```{r}
+```{r Multi-Word-Terms}
   
 data$"Title.lower" <-
   stringr::str_replace_all(
@@ -108,7 +113,7 @@ data$"Title.lower" <-
 
 * Omit punctuation and special characters from the titles.
 
-```{r}
+```{r Omit-Punctuation}
 
 words <-
   stringr::str_split(
@@ -142,7 +147,7 @@ table.words <-
 
 * List all unique words that appear in the titles.
 
-```{r}
+```{r Words-Unique}
 
 words.unique <-
   sort(
@@ -157,7 +162,7 @@ words.unique <-
 * List general words that are not of interest.
 * Add plain numbers to this list.
 
-```{r}
+```{r Blocklist}
 
 blocklist <-
   c(
@@ -199,7 +204,7 @@ blocklist <-
 
 * Omit the blocked words from the words list of each article.
 
-```{r}
+```{r Omit-Blocklisted}
 
 words <-
   lapply(
@@ -213,7 +218,7 @@ words <-
 
 # Re-Extract Unique Words
 
-```{r}
+```{r Words-Unique-Update}
 
 words.unique <-
   sort(
@@ -227,7 +232,7 @@ words.unique <-
 
 * Matrix that has value 1 if the word (row) appears in the article (column) and 0 otherwise.
 
-```{r}
+```{r Words-by-Articles}
 
 wba <-
   array(
@@ -250,7 +255,7 @@ for ( i in 1:nrow( data ) ) {
 
 * Trasform the occurrences with log (1+x) for a more Gaussian-like distribution.
 
-```{r}
+```{r Log-Transform}
 
 wba.log1px <- log10( 1 + wba )
 
@@ -260,7 +265,7 @@ wba.log1px <- log10( 1 + wba )
 
 * Scale the data for PCA.
 
-```{r}
+```{r Autoscale}
 
 wba.norm <- scale( wba.log1px )
 
@@ -270,7 +275,7 @@ wba.norm <- scale( wba.log1px )
 
 ## Compute PCA
 
-```{r}
+```{r PCA-Compute}
 
 result.pca <-
   princomp(
@@ -281,7 +286,7 @@ result.pca <-
 
 ## Plot PCA
 
-```{r}
+```{r PCA-Plot}
 
 library( "ggfortify" )
 
@@ -301,7 +306,7 @@ print( plot )
 
 * Using a fixed number of eight clusters for a suitable visual representation.
 
-```{r}
+```{r Clustering}
 
 result.clustering <-
   cluster::pam(
@@ -321,7 +326,7 @@ result.clustering <-
 * Wrap multi-word terms to multiple lines for better visual impression.
 * Create a text string listing all the article titles, where the term appears.
 
-```{r}
+```{r Data-for-Figure}
 
 data.plot <-
   data.frame(
@@ -385,7 +390,7 @@ data.plot$"Publications" <-
 * Use pseudo-log-valued axes for reduced outliers.
 * 
 
-```{r}
+```{r Figure-Define}
 
 jitter <- 1
 
@@ -425,13 +430,21 @@ plot <-
 
 ```
 
+## Show the (Passive) Figure
+
+```{r Figure-Show}
+
+plot
+
+```
+
 ## Create the Interactive Figure
 
 * Make ggplot2 figure interactive with the *ggplotly*-function from the *plotly*-package.
 * Show the term and the articles, where it appears, as text (tooltip) when hovering over a data point.
 * Use the layout-function for fine-tuning of the legend.
 
-```{r}
+```{r Figure-Interactive-Define}
 
 library( tidyr )
 
@@ -454,7 +467,7 @@ plot.interactive <-
 
 ## View the Interactive Figure
 
-```{r}
+```{r Figure-Interactive-Show}
 
 plot.interactive
 
@@ -465,7 +478,7 @@ plot.interactive
 * Create a stand-alone html-widget of the figure with the *partial_bundle* function from the *plotly*-package.
 * Save the widget with the *saveWidget*-function from the *htmlWidgets*-package.
 
-```{r}
+```{r Figure-Interactive-Export}
 
 widget <- plotly::partial_bundle( plot.interactive )
 
@@ -497,7 +510,7 @@ widget
 
 * Create the same figure with a dark layout, suitable for dark webpages.
 
-```{r}
+```{r Figure-Dark-Define}
 
 plot.dark <-
   plot +
@@ -516,9 +529,17 @@ plot.dark <-
 
 ```
 
+## Show the (Passive) Figure
+
+```{r Figure-Dark-Show}
+
+plot.dark
+
+```
+
 ## Create the Interactive Figure
 
-```{r}
+```{r Figure-Interactive-Dark-Define}
 
 library( tidyr )
 
@@ -541,7 +562,7 @@ plot.dark.interactive <-
 
 ## View the Interactive Figure
 
-```{r}
+```{r Figure-Interactive-Dark-Show}
 
 plot.dark.interactive
 
@@ -549,7 +570,7 @@ plot.dark.interactive
 
 ## Export HTLM Widget
 
-```{r}
+```{r Figure-Interactive-Dark-Export}
 
 widget <- plotly::partial_bundle( plot.dark.interactive )
 
@@ -575,7 +596,7 @@ widget
 
 # SessionInfo
 
-```{r}
+```{r SessionInfo}
 
 utils::sessionInfo()
 
