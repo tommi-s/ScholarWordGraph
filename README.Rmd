@@ -25,6 +25,8 @@ The code is for R and it is, among others, based on packages [ggplot2](https://g
 
 This document is part of the Github repository [ScholarWordGraph](https://github.com/tommi-s/ScholarWordGraph) by [Tommi Suvitaival](https://tommi-s.com/).
 
+View this document at https://tommi-s.com/ScholarWordGraph/ to show all output correctly.
+
 <iframe 
   id="igraph" 
   scrolling="no" 
